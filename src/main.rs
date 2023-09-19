@@ -2,6 +2,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 use std::time::Duration;
 use std::{fs, thread};
+use web_server::ThreadPool;
 
 fn main() {
     let listner = TcpListener::bind("127.0.0.1:7676").unwrap();
@@ -21,19 +22,21 @@ fn handle_connection(mut stream: TcpStream) {
         .collect();
     let path = path_reader(&data[0]);
     println!("path requested is:{}", path);
-    thread::sleep(Duration::from_millis(5000));
 
     let (body, version) = match path {
         "/" => (
-            fs::read_to_string("src/index/index.html").unwrap(),
+            fs::read_to_string("src/html/index.html").unwrap(),
             "HTTP/1.1 200 OK",
         ),
-        "/help" => (
-            fs::read_to_string("src/index/help.html").unwrap(),
-            "HTTP/1.1 200 OK",
-        ),
+        "/help" => {
+            thread::sleep(Duration::from_millis(5000));
+            (
+                fs::read_to_string("src/html/help.html").unwrap(),
+                "HTTP/1.1 200 OK",
+            )
+        }
         _ => (
-            fs::read_to_string("src/index/404.html").unwrap(),
+            fs::read_to_string("src/html/404.html").unwrap(),
             "HTTP/1.1 200 OK",
         ),
     };
